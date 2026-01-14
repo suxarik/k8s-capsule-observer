@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tenant-observer
+  namespace: tenant-observer
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: tenant-observer-role
+rules:
+# Framework: runtime observation of namespaces & CRDs (addition/deletion).
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["list", "watch"]
+
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["list", "watch"]
+
+# Application: read-only access for watching Capsule tenants cluster-wide.
+- apiGroups: ["capsule.clastix.io"]
+  resources: ["tenants"]
+  verbs: ["list", "watch"]
+
+# Custom resources for TenantInfo
+- apiGroups: ["operators.clastix.io"]
+  resources: ["tenantinfos"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+# Read-only access to cluster-scoped resources for metrics.
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["list", "watch"]
+
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tenant-observer-role
+  namespace: tenant-observer
+rules:
+# Framework: posting the events about the handlers progress/errors.
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+
+# Framework: kopf uses secrets for operator locking/state.
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  resourceNames:
+    - "kopf-lock"
+
+# Watching resources within the operator's namespace.
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tenant-observer-binding
+subjects:
+  - kind: ServiceAccount
+    name: tenant-observer
+    namespace: tenant-observer
+roleRef:
+  kind: ClusterRole
+  name: tenant-observer-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tenant-observer-rolebinding
+  namespace: tenant-observer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tenant-observer-role
+subjects:
+  - kind: ServiceAccount
+    name: tenant-observer
+    namespace: tenant-observer

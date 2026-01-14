@@ -1,0 +1,333 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tenantinfos.operators.clastix.io
+spec:
+  group: operators.clastix.io
+  names:
+    kind: TenantInfo
+    listKind: TenantInfoList
+    plural: tenantinfos
+    singular: tenantinfo
+    shortNames:
+      - ti
+  scope: Namespaced
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+        - name: Tenant
+          type: string
+          jsonPath: .spec.name
+        - name: Namespaces
+          type: integer
+          jsonPath: .spec.namespace_count
+        - name: CPU Request
+          type: string
+          jsonPath: .spec.resources.cpu.requested.value
+        - name: CPU %
+          type: number
+          jsonPath: .spec.resources.cpu.requested.percentage
+        - name: Memory Request
+          type: string
+          jsonPath: .spec.resources.memory.requested.value
+        - name: Memory %
+          type: number
+          jsonPath: .spec.resources.memory.requested.percentage
+        - name: Pods
+          type: string
+          jsonPath: .spec.resources.pods.requested
+        - name: Running
+          type: integer
+          jsonPath: .spec.resources.pods.running
+        - name: Pending
+          type: integer
+          jsonPath: .spec.resources.pods.pending
+        - name: Failed
+          type: integer
+          jsonPath: .spec.resources.pods.failed
+        - name: Services
+          type: integer
+          jsonPath: .spec.resources.services.count
+        - name: Health
+          type: number
+          jsonPath: .spec.resources.health_score.score
+        - name: Status
+          type: string
+          jsonPath: .spec.resources.health_score.status
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              properties:
+                name:
+                  type: string
+                namespaces:
+                  type: array
+                  items:
+                    type: string
+                namespace_count:
+                  type: integer
+                resources:
+                  type: object
+                  properties:
+                    cpu:
+                      type: object
+                      properties:
+                        requested:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_milli:
+                              type: integer
+                            percentage:
+                              type: number
+                            percentage_display:
+                              type: string
+                            remaining:
+                              type: string
+                            status:
+                              type: string
+                          required:
+                            - value
+                            - percentage
+                            - percentage_display
+                            - status
+                        limit:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_milli:
+                              type: integer
+                          required:
+                            - value
+                        usage:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_milli:
+                              type: integer
+                            percentage:
+                              type: number
+                            percentage_display:
+                              type: string
+                          required:
+                            - value
+                        utilization_efficiency:
+                          type: number
+                      required:
+                        - requested
+                        - limit
+                        - usage
+                    memory:
+                      type: object
+                      properties:
+                        requested:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_bytes:
+                              type: integer
+                            percentage:
+                              type: number
+                            percentage_display:
+                              type: string
+                            remaining:
+                              type: string
+                            status:
+                              type: string
+                          required:
+                            - value
+                            - percentage
+                            - percentage_display
+                            - status
+                        limit:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_bytes:
+                              type: integer
+                          required:
+                            - value
+                        usage:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_bytes:
+                              type: integer
+                            percentage:
+                              type: number
+                            percentage_display:
+                              type: string
+                          required:
+                            - value
+                        utilization_efficiency:
+                          type: number
+                      required:
+                        - requested
+                        - limit
+                        - usage
+                    pods:
+                      type: object
+                      properties:
+                        requested:
+                          type: integer
+                        running:
+                          type: integer
+                        pending:
+                          type: integer
+                        failed:
+                          type: integer
+                        limit:
+                          type: string
+                        percentage:
+                          type: string
+                        status:
+                          type: string
+                      required:
+                        - requested
+                        - running
+                        - pending
+                        - failed
+                    storage:
+                      type: object
+                      properties:
+                        requested:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_bytes:
+                              type: integer
+                          required:
+                            - value
+                        limit:
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                            raw_bytes:
+                              type: integer
+                          required:
+                            - value
+                      required:
+                        - requested
+                    services:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                      required:
+                        - count
+                    configmaps:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                      required:
+                        - count
+                    secrets:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                      required:
+                        - count
+                    ingresses:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                      required:
+                        - count
+                    health_score:
+                      type: object
+                      properties:
+                        score:
+                          type: number
+                        status:
+                          type: string
+                        details:
+                          type: object
+                      required:
+                        - score
+                        - status
+                  required:
+                    - cpu
+                    - memory
+                    - pods
+                    - storage
+                    - services
+                    - configmaps
+                    - secrets
+                    - ingresses
+                    - health_score
+                quota:
+                  type: object
+                network:
+                  type: object
+                storage_classes:
+                  type: array
+                  items:
+                    type: string
+                owners:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                    required:
+                      - kind
+                      - name
+                status:
+                  type: object
+                  properties:
+                    phase:
+                      type: string
+                    state:
+                      type: string
+                  required:
+                    - phase
+                    - state
+                health:
+                  type: object
+                  properties:
+                    score:
+                      type: number
+                    status:
+                      type: string
+                    details:
+                      type: object
+                  required:
+                    - score
+                    - status
+                metadata:
+                  type: object
+              required:
+                - name
+                - namespaces
+                - namespace_count
+                - resources

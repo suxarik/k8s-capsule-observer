@@ -1,0 +1,126 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: tenant-observer-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus-operator
+spec:
+  groups:
+    - name: tenant-observer
+      rules:
+        # High CPU usage warning
+        - alert: TenantObserverHighCPU
+          expr: tenant_observer_cpu_requested_percentage > 75
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} CPU usage is high"
+            description: "Tenant {{ $labels.tenant }} has CPU requests at {{ $value | printf \"%.2f\" }}% of limit"
+            runbook_url: "https://wiki.example.com/tenant-observer-high-cpu"
+        
+        # High CPU usage critical
+        - alert: TenantObserverCriticalCPU
+          expr: tenant_observer_cpu_requested_percentage > 90
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} CPU usage is critical"
+            description: "Tenant {{ $labels.tenant }} has CPU requests at {{ $value | printf \"%.2f\" }}% of limit"
+            runbook_url: "https://wiki.example.com/tenant-observer-critical-cpu"
+        
+        # High Memory usage warning
+        - alert: TenantObserverHighMemory
+          expr: tenant_observer_memory_requested_percentage > 75
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} Memory usage is high"
+            description: "Tenant {{ $labels.tenant }} has Memory requests at {{ $value | printf \"%.2f\" }}% of limit"
+            runbook_url: "https://wiki.example.com/tenant-observer-high-memory"
+        
+        # High Memory usage critical
+        - alert: TenantObserverCriticalMemory
+          expr: tenant_observer_memory_requested_percentage > 90
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} Memory usage is critical"
+            description: "Tenant {{ $labels.tenant }} has Memory requests at {{ $value | printf \"%.2f\" }}% of limit"
+            runbook_url: "https://wiki.example.com/tenant-observer-critical-memory"
+        
+        # Low health score
+        - alert: TenantObserverLowHealthScore
+          expr: tenant_observer_health_score < 70
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} health score is low"
+            description: "Tenant {{ $labels.tenant }} has health score {{ $value | printf \"%.2f\" }}"
+            runbook_url: "https://wiki.example.com/tenant-observer-health-score"
+        
+        # Critical health score
+        - alert: TenantObserverCriticalHealthScore
+          expr: tenant_observer_health_score < 50
+          for: 5m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} health score is critical"
+            description: "Tenant {{ $labels.tenant }} has health score {{ $value | printf \"%.2f\" }}"
+            runbook_url: "https://wiki.example.com/tenant-observer-critical-health"
+        
+        # Failed pods
+        - alert: TenantObserverFailedPods
+          expr: tenant_observer_pods_count{state="failed"} > 0
+          for: 5m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} has failed pods"
+            description: "Tenant {{ $labels.tenant }} has {{ $value | printf \"%.0f\" }} failed pods"
+        
+        # Pending pods
+        - alert: TenantObserverPendingPods
+          expr: tenant_observer_pods_count{state="pending"} > 3
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Tenant {{ $labels.tenant }} has pending pods"
+            description: "Tenant {{ $labels.tenant }} has {{ $value | printf \"%.0f\" }} pending pods for more than 10 minutes"
+        
+        # Cluster health warning
+        - alert: TenantObserverClusterHealthWarning
+          expr: tenant_observer_cluster_health_score < 80
+          for: 10m
+          labels:
+            severity: warning
+            team: platform
+          annotations:
+            summary: "Cluster health score is low"
+            description: "Overall cluster health score is {{ $value | printf \"%.2f\" }}"
+        
+        # Cluster health critical
+        - alert: TenantObserverClusterHealthCritical
+          expr: tenant_observer_cluster_health_score < 60
+          for: 10m
+          labels:
+            severity: critical
+            team: platform
+          annotations:
+            summary: "Cluster health score is critical"
+            description: "Overall cluster health score is {{ $value | printf \"%.2f\" }}"
